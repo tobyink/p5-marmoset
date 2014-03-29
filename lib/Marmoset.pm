@@ -225,7 +225,7 @@ sub _build_constructor
 			push @code, '   }';
 		}
 		
-		my $slot = $me->_class_for_attributes->_inline_lexical_access($f->{slot}, $f->{id}, $f);
+		my $slot = $me->_class_for_attributes->_inline_access($f->{slot}, $f->{id}, $f);
 		push @code, '   '.$slot.' = $$tmp if $tmp;';
 		push @code, '   undef $tmp;';
 	}
@@ -269,66 +269,17 @@ sub _build_constructor
 
 {
 	package Marmoset::Attribute;
-	use Lexical::Accessor 0.005 ();
-	our @ISA = qw(Lexical::Accessor);
-	
-	*has = __PACKAGE__->can('lexical_has');
-	
-	sub _install_coderef
-	{
-		my $me = shift;
-		my ($target, $coderef, undef, undef, $opts) = @_;
-		return unless defined $target;
-		if (!ref $target and $target =~ /\A[^\W0-9]\w+\z/)
-		{
-			my $name = "$opts->{package}\::$target";
-			*$name = $coderef;
-			return;
-		}
-		$me->SUPER::_install_coderef(@_);
-	}
+	use Sub::Accessor::Small 0.006 ();
+	our @ISA = qw(Sub::Accessor::Small);
 	
 	sub _canonicalize_opts
 	{
 		my $me = shift;
 		my ($name, $uniq, $opts) = @_;
 		
-		if ($opts->{is} eq 'rw')
-		{
-			$opts->{accessor} = $name
-				if !exists($opts->{accessor});
-		}
-		elsif ($opts->{is} eq 'ro')
-		{
-			$opts->{reader} = $name
-				if !exists($opts->{reader});
-		}
-		elsif ($opts->{is} eq 'rwp')
-		{
-			$opts->{reader} = $name
-				if !exists($opts->{reader});
-			$opts->{writer} = "_set_$name"
-				if !exists($opts->{writer});
-		}
-		elsif ($opts->{is} eq 'lazy')
-		{
-			$opts->{reader} = $name
-				if !exists($opts->{reader});
-			$opts->{lazy} = 1
-				if !exists($opts->{lazy});
-		}
-		
-		# Hide these from parent (they'll throw exceptions)
-		my $required = delete($opts->{required});
-		my $init_arg = exists($opts->{init_arg}) ? delete($opts->{init_arg}) : $name;
-		my $lazy     = delete($opts->{lazy});
-		
 		$me->SUPER::_canonicalize_opts(@_);
 		
-		# Restore
-		$opts->{init_arg}   = $init_arg;
-		$opts->{required}   = !!$required;
-		$opts->{lazy}       = !!$lazy;
+		$opts->{init_arg}   = $name unless exists $opts->{init_arg};
 		$opts->{slot}       = $name;
 		$opts->{id}         = $uniq;
 		
@@ -359,17 +310,17 @@ sub _build_constructor
 			if defined($opts->{clearer});
 	}
 	
-	sub _inline_lexical_clearer
+	sub _inline_clearer
 	{
 		croak "This class cannot generate a clearer; bailing out";
 	}
 	
-	sub _inline_lexical_predicate
+	sub _inline_predicate
 	{
 		return q[ 1 ];
 	}
 	
-	sub _inline_lexical_access
+	sub _inline_access
 	{
 		my $me = shift;
 		my ($name, $uniq, $opts) = @_;
@@ -380,7 +331,7 @@ sub _build_constructor
 		);
 	}
 	
-	sub _inline_lexical_access_w
+	sub _inline_access_w
 	{
 		my $me = shift;
 		my ($name, $uniq, $opts, $expr) = @_;
