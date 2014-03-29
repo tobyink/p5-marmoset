@@ -378,9 +378,9 @@ sub _build_constructor
 		my $me = shift;
 		my ($name, $uniq, $opts) = @_;
 		sprintf(
-			'unpack(q(%s), substr(${$_[0]}, $Marmoset::OFFSETS{%s}{%s}, $Marmoset::SIZES{%s}{%s}))',
+			'unpack(q(%s), substr(${$_[0]}, $Marmoset::OFFSETS{ref($_[0])}{%s}, $Marmoset::SIZES{ref($_[0])}{%s}))',
 			$opts->{pack},
-			(map { B::perlstring($_) } ( $opts->{package}, $opts->{slot} ) x 2),
+			(map { B::perlstring($_) } ( $opts->{slot} ) x 2),
 		);
 	}
 	
@@ -389,8 +389,8 @@ sub _build_constructor
 		my $me = shift;
 		my ($name, $uniq, $opts, $expr) = @_;
 		sprintf(
-			'substr(${$_[0]}, $Marmoset::OFFSETS{%s}{%s}, $Marmoset::SIZES{%s}{%s}) = pack(q(%s), %s)',
-			(map { B::perlstring($_) } ( $opts->{package}, $opts->{slot} ) x 2),
+			'substr(${$_[0]}, $Marmoset::OFFSETS{ref($_[0])}{%s}, $Marmoset::SIZES{ref($_[0])}{%s}) = pack(q(%s), %s)',
+			(map { B::perlstring($_) } ( $opts->{slot} ) x 2),
 			$opts->{pack},
 			$expr,
 		);
