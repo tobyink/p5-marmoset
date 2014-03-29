@@ -45,7 +45,7 @@ use Test::Modern;
 	has baz => (
 		is        => 'rw',
 		predicate => "has_baz",  # XXX: TODO predicate => 1
-	);	
+	);
 }
 
 object_ok(
