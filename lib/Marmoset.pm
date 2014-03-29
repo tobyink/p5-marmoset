@@ -18,6 +18,7 @@ use B qw();
 use Carp qw(croak);
 use Eval::TypeTiny qw(eval_closure);
 use Exporter::Shiny our(@EXPORT) = qw( has extends );
+use Sub::Accessor::Small 0.008 ();
 
 BEGIN {
 	($] >= 5.010) ? do { require mro } : do { require MRO::Compat };	
@@ -275,7 +276,6 @@ sub _build_constructor
 
 {
 	package Marmoset::Attribute;
-	use Sub::Accessor::Small 0.008 ();
 	our @ISA = qw(Sub::Accessor::Small);
 	
 	sub accessor_kind { 'Marmoset' }
