@@ -95,5 +95,11 @@ like(
 	'type constraints enforced',
 );
 
+like(
+	exception { Local::Example::has(quux => (is => 'ro')) },
+	qr{\ALocal::Example has already been instantiated; cannot add attributes},
+	'classes get finalized properly',
+);
+
 done_testing;
 

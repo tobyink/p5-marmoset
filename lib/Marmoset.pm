@@ -16,19 +16,12 @@ sub _class_for_attributes { 'Marmoset::Attribute::InsideOut' }
 
 use B qw();
 use Carp qw(croak);
+use Eval::TypeTiny qw(eval_closure);
 use Exporter::Shiny our(@EXPORT) = qw( has extends );
 
 BEGIN {
-	for my $backend (qw/ Eval::TypeTiny Eval::Closure /)
-	{
-		last if eval(
-			"require $backend; *eval_closure = \\&$backend\::eval_closure;"
-		);
-	}
-	exists(&eval_closure)
-		or croak "Could not load Eval::TypeTiny";
-};
-
+	($] >= 5.010) ? do { require mro } : do { require MRO::Compat };	
+}
 
 sub _exporter_validate_opts
 {
@@ -83,12 +76,19 @@ sub _generate_extends
 	};
 }
 
+sub _finalize_class
+{
+	my $me = shift;
+	my ($class) = @_;
+	$IS_FINAL{$_} = 1 for @{mro::get_linear_isa($class)};
+	$me->_initialize_slots($class);
+	return $me->_build_constructor($class);
+}
+
 sub _initialize_slots
 {
 	my $me = shift;
 	my ($class) = @_;
-	
-	($] >= 5.010) ? do { require mro } : do { require MRO::Compat };
 	
 	my @fields =
 		grep exists($_->{pack}),
@@ -114,8 +114,6 @@ sub _build_constructor
 	my $me = shift;
 	my ($class) = @_;
 	
-	($] >= 5.010) ? do { require mro } : do { require MRO::Compat };
-	
 	my @isa = @{mro::get_linear_isa($class)};
 	my @attr = map @{ $ATTRIBUTES{$_} or [] }, @isa;
 	my @fields = grep exists($_->{pack}), @attr;
@@ -139,8 +137,7 @@ sub _build_constructor
 	push @code, 'sub {';
 	push @code, '   my $class = shift;';
 	push @code, '   if ($class ne '.B::perlstring($class).') {';
-	push @code, '      my $new = "Marmoset"->_build_constructor($class);';
-	push @code, '      "Marmoset"->_initialize_slots($class);';
+	push @code, '      my $new = "Marmoset"->_finalize_class($class);';
 	push @code, '      goto $new;';
 	push @code, '   }';
 	push @code, '   my $str = "";';
@@ -257,8 +254,7 @@ sub _build_constructor
 	sub new
 	{
 		my ($class) = @_;
-		my $new = 'Marmoset'->_build_constructor($class);
-		'Marmoset'->_initialize_slots($class);
+		my $new = 'Marmoset'->_finalize_class($class);
 		goto $new;
 	}
 	
