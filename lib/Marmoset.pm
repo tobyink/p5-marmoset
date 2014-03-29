@@ -225,8 +225,7 @@ sub _build_constructor
 			push @code, '   }';
 		}
 		
-		my $slot = $me->_class_for_attributes->_inline_access($f->{slot}, $f->{id}, $f);
-		push @code, '   '.$slot.' = $$tmp if $tmp;';
+		push @code, '   '.$f->inline_access.' = $$tmp if $tmp;';
 		push @code, '   undef $tmp;';
 	}
 	push @code, "   \$self->$_\(\$params);" for reverse @build_methods;
@@ -269,22 +268,20 @@ sub _build_constructor
 
 {
 	package Marmoset::Attribute;
-	use Sub::Accessor::Small 0.006 ();
+	use Sub::Accessor::Small 0.008 ();
 	our @ISA = qw(Sub::Accessor::Small);
 	
-	sub _canonicalize_opts
+	sub accessor_kind { 'Marmoset' }
+	
+	sub canonicalize_opts
 	{
 		my $me = shift;
-		my ($name, $uniq, $opts) = @_;
 		
-		$me->SUPER::_canonicalize_opts(@_);
-		
-		$opts->{init_arg}   = $name unless exists $opts->{init_arg};
-		$opts->{slot}       = $name;
-		$opts->{id}         = $uniq;
+		$me->SUPER::canonicalize_opts(@_);
+		$me->{init_arg} = $me->{slot} unless exists $me->{init_arg};
 		
 		# Save options
-		push @{ $ATTRIBUTES{$opts->{package}} ||= [] }, $opts;
+		push @{ $ATTRIBUTES{$me->{package}} ||= [] }, $me;
 	}
 }
 
@@ -294,51 +291,53 @@ sub _build_constructor
 	
 	use Carp qw(croak);	
 	
-	sub _canonicalize_opts
+	sub accessor_kind { 'Marmoset packed' }
+	
+	sub canonicalize_opts
 	{
 		my $me = shift;
-		my ($name, $uniq, $opts) = @_;
-		$me->SUPER::_canonicalize_opts(@_);
+		$me->SUPER::canonicalize_opts(@_);
 		
-		croak "Attribute '$name' is a field, therefore must be required or have a default; bailing out"
-			if exists($opts->{required})
-			&& !$opts->{required}
-			&& !$opts->{builder}
-			&& !$opts->{default};
+		croak "Attribute '$me->{slot}' is a field, therefore must be required or have a default; bailing out"
+			if exists($me->{required})
+			&& !$me->{required}
+			&& !$me->{builder}
+			&& !$me->{default};
 		
-		croak "Attribute '$name' is a field, therefore cannot be cleared; bailing out"
-			if defined($opts->{clearer});
+		croak "Attribute '$me->{slot}' is a field, therefore cannot be cleared; bailing out"
+			if defined($me->{clearer});
 	}
 	
-	sub _inline_clearer
+	sub inline_clearer
 	{
 		croak "This class cannot generate a clearer; bailing out";
 	}
 	
-	sub _inline_predicate
+	sub inline_predicate
 	{
 		return q[ 1 ];
 	}
 	
-	sub _inline_access
+	sub inline_access
 	{
 		my $me = shift;
-		my ($name, $uniq, $opts) = @_;
+		
 		sprintf(
 			'unpack(q(%s), substr(${$_[0]}, $Marmoset::OFFSETS{ref($_[0])}{%s}, $Marmoset::SIZES{ref($_[0])}{%s}))',
-			$opts->{pack},
-			(map { B::perlstring($_) } ( $opts->{slot} ) x 2),
+			$me->{pack},
+			(map { B::perlstring($_) } ( $me->{slot} ) x 2),
 		);
 	}
 	
-	sub _inline_access_w
+	sub inline_access_w
 	{
 		my $me = shift;
-		my ($name, $uniq, $opts, $expr) = @_;
+		my ($expr) = @_;
+		
 		sprintf(
 			'substr(${$_[0]}, $Marmoset::OFFSETS{ref($_[0])}{%s}, $Marmoset::SIZES{ref($_[0])}{%s}) = pack(q(%s), %s)',
-			(map { B::perlstring($_) } ( $opts->{slot} ) x 2),
-			$opts->{pack},
+			(map { B::perlstring($_) } ( $me->{slot} ) x 2),
+			$me->{pack},
 			$expr,
 		);
 	}
@@ -347,6 +346,8 @@ sub _build_constructor
 {
 	package Marmoset::Attribute::InsideOut;
 	our @ISA = qw(Marmoset::Attribute);	
+	
+	sub accessor_kind { 'Marmoset inside-out' }
 }
 
 
