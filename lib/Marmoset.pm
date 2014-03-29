@@ -103,9 +103,16 @@ sub _initialize_slots
 	
 	for my $i (0 .. $#fields)
 	{
-		my $slot = $fields[$i]{slot};
-		$Marmoset::OFFSETS{$class}{$slot} = $offsets[$i];
-		$Marmoset::SIZES{$class}{$slot} = $sizes[$i];
+		local $Marmoset::REALLY_INSTALL = 1;
+		my $f = $fields[$i];
+		
+		(my($tmp), $f->{package}) = ($f->{package}, $class);
+		($f->{OFFSET}, $f->{SIZE}) = ($offsets[$i], $sizes[$i]);
+		
+		$f->install_accessors;
+		
+		delete($f->{$_}) for qw( OFFSET SIZE );
+		$f->{package} = $tmp;
 	}
 }
 
@@ -323,9 +330,10 @@ sub _build_constructor
 		my $me = shift;
 		
 		sprintf(
-			'unpack(q(%s), substr(${$_[0]}, $Marmoset::OFFSETS{ref($_[0])}{%s}, $Marmoset::SIZES{ref($_[0])}{%s}))',
+			'unpack(q(%s), substr(${$_[0]}, %d, %d))',
 			$me->{pack},
-			(map { B::perlstring($_) } ( $me->{slot} ) x 2),
+			$me->{OFFSET} || 0,
+			$me->{SIZE} || 0,
 		);
 	}
 	
@@ -335,18 +343,24 @@ sub _build_constructor
 		my ($expr) = @_;
 		
 		sprintf(
-			'substr(${$_[0]}, $Marmoset::OFFSETS{ref($_[0])}{%s}, $Marmoset::SIZES{ref($_[0])}{%s}) = pack(q(%s), %s)',
-			(map { B::perlstring($_) } ( $me->{slot} ) x 2),
+			'substr(${$_[0]}, %d, %d) = pack(q(%s), %s)',
+			$me->{OFFSET} || 0,
+			$me->{SIZE} || 0,
 			$me->{pack},
 			$expr,
 		);
+	}
+	
+	sub install_accessors
+	{
+		return unless $Marmoset::REALLY_INSTALL;
+		shift->SUPER::install_accessors(@_);
 	}
 }
 
 {
 	package Marmoset::Attribute::InsideOut;
 	our @ISA = qw(Marmoset::Attribute);	
-	
 	sub accessor_kind { 'Marmoset inside-out' }
 }
 
