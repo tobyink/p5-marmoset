@@ -21,7 +21,7 @@ use Exporter::Shiny our(@EXPORT) = qw( has extends );
 use Sub::Accessor::Small 0.008 ();
 
 BEGIN {
-	($] >= 5.010) ? do { require mro } : do { require MRO::Compat };	
+	($] >= 5.010) ? do { require mro } : do { require MRO::Compat };
 }
 
 sub _exporter_validate_opts
@@ -384,6 +384,8 @@ __END__
 
 =encoding utf-8
 
+=for stopwords featureful
+
 =head1 NAME
 
 Marmoset - class builder for memory-efficient objects
@@ -598,6 +600,12 @@ you've finished defining your class' inheritance and attributes, but
 before applying any roles or method modifiers. To do this, call:
 
    Marmoset->make_immutable(__PACKAGE__);
+
+=begin trustme
+
+=item make_immutable
+
+=end trustme
 
 =head2 Methods provided by Marmoset::Object
 
