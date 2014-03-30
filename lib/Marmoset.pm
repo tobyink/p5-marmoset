@@ -6,7 +6,7 @@ no warnings qw( once uninitialized );
 package Marmoset;
 
 our $AUTHORITY = 'cpan:TOBYINK';
-our $VERSION   = '0.001';
+our $VERSION   = '0.000_01';
 
 our (%ATTRIBUTES, %IS_FINAL, %OFFSETS, %SIZES);
 
@@ -258,7 +258,7 @@ sub _build_constructor
 {
 	package Marmoset::Object;
 	our $AUTHORITY = 'cpan:TOBYINK';
-	our $VERSION   = '0.001';
+	our $VERSION   = '0.000_01';
 	
 	sub new
 	{
@@ -281,7 +281,7 @@ sub _build_constructor
 {
 	package Marmoset::Attribute;
 	our $AUTHORITY = 'cpan:TOBYINK';
-	our $VERSION   = '0.001';
+	our $VERSION   = '0.000_01';
 	our @ISA       = qw(Sub::Accessor::Small);
 	
 	sub accessor_kind { 'Marmoset' }
@@ -301,7 +301,7 @@ sub _build_constructor
 {
 	package Marmoset::Attribute::Field;
 	our $AUTHORITY = 'cpan:TOBYINK';
-	our $VERSION   = '0.001';
+	our $VERSION   = '0.000_01';
 	our @ISA       = qw(Marmoset::Attribute);
 	
 	use Carp qw(croak);
@@ -369,7 +369,7 @@ sub _build_constructor
 {
 	package Marmoset::Attribute::InsideOut;
 	our $AUTHORITY = 'cpan:TOBYINK';
-	our $VERSION   = '0.001';
+	our $VERSION   = '0.000_01';
 	our @ISA       = qw(Marmoset::Attribute);
 	
 	sub accessor_kind { 'Marmoset inside-out' }
