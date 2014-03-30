@@ -3,7 +3,17 @@
 @prefix : <http://ontologi.es/doap-deps#>.
 
 `Marmoset`
-	:test-requirement       [ :on "Test::More 0.96"^^:CpanId ];
+	:runtime-requirement    [ :on "perl 5.008003"^^:CpanId ];
+	:runtime-requirement    [ :on "Eval::TypeTiny"^^:CpanId ];
+	:runtime-requirement    [ :on "Exporter::Shiny"^^:CpanId ];
+	:runtime-requirement    [ :on "Sub::Accessor::Small"^^:CpanId ];
+	:runtime-recommendation [ :on "Sub::Name"^^:CpanId ];
+	:runtime-recommendation [ :on "Type::Utils"^^:CpanId ];
+	:runtime-suggestion     [ :on "Types::Standard"^^:CpanId ];
+	:runtime-suggestion     [ :on "MRO::Compat"^^:CpanId ];
+	:runtime-suggestion     [ :on "Role::Tiny"^^:CpanId ];
+	:runtime-suggestion     [ :on "Class::Method::Modifiers"^^:CpanId ];
+	:test-requirement       [ :on "Test::Modern"^^:CpanId ];
 	:develop-recommendation [ :on "Dist::Inkt 0.001"^^:CpanId ];
 	.
 
