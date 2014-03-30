@@ -7,3 +7,6 @@ cpan:TOBYINK
 	:page  <https://metacpan.org/author/TOBYINK>;
 	:mbox  <mailto:tobyink@cpan.org>.
 
+cpan:BROWSERUK
+	:nick  "BrowserUk";
+	:page  <http://www.perlmonks.org/?node_id=171588>.
